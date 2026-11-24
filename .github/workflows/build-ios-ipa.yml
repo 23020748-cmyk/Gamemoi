@@ -6,7 +6,7 @@ on:
       - main
 jobs:
   build-ipa:
-    runs-on: macos-14
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,7 +21,11 @@ jobs:
       - name: Build Unsigned IPA
         run: |
           cd ios/App
-          xcodebuild -project App.xcodeproj -scheme App -configuration Release -sdk iphoneos CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build CONFIGURATION_BUILD_DIR="$PWD/build"
+          if [ -d "App.xcworkspace" ]; then
+            xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -sdk iphoneos CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build CONFIGURATION_BUILD_DIR="$PWD/build"
+          else
+            xcodebuild -project App.xcodeproj -scheme App -configuration Release -sdk iphoneos CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build CONFIGURATION_BUILD_DIR="$PWD/build"
+          fi
           cd ../..
           mkdir -p Payload
           cp -r ios/App/build/App.app Payload/BlockCraft.app
@@ -30,4 +34,3 @@ jobs:
         with:
           name: BlockCraft-iOS-IPA
           path: BlockCraft-unsigned.ipa
-
